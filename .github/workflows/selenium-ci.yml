@@ -8,12 +8,13 @@ on:
   workflow_dispatch:
     inputs:
       execution_env:
-        description: Entorno de ejecución
+        description: 'Entorno de ejecución'
         required: true
-        default: local
+        default: 'browserstack'
         type: choice
         options:
           - browserstack
+          - local
 
 jobs:
   selenium-tests:
@@ -39,28 +40,26 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Install Chrome (for local tests)
-        if: github.event.inputs.execution_env == 'local'
+      - name: Install Chrome for local execution
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.execution_env == 'local'
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Run Selenium Tests (BrowserStack)
-        if: github.event.inputs.execution_env == 'browserstack'
-        run: |
-          mvn clean test -Pbrowserstack
+      - name: Run tests on BrowserStack
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.execution_env == 'browserstack'
+        run: mvn clean test -Pbrowserstack
 
-      - name: Run Selenium Tests (Local)
-        if: github.event.inputs.execution_env == 'local'
-        run: |
-          mvn clean test -Pheadless 
+      - name: Run tests locally
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.execution_env == 'local'
+        run: mvn clean test -Pheadless
 
-      - name: Upload Test Results
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ github.event.inputs.execution_env }}-${{ github.run_number }}
+          name: test-reports-${{ github.run_number }}
           path: |
             target/surefire-reports/
-            target/screenshots/      
             test-output/
+            screenshots/
