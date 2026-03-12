@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Las credenciales las lee BaseTest directamente desde env vars
       BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
       BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
 
@@ -39,21 +40,32 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Install Chrome for local execution
+      # ── Solo para ejecución local ─────────────────────────────────────────
+      - name: Install Chrome (solo ejecución local)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.execution_env == 'local'
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
+      # ── BrowserStack: push/PR automático o dispatch con browserstack ──────
       - name: Run tests on BrowserStack
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.execution_env == 'browserstack'
-        run: mvn clean test -Pbrowserstack
+        run: |
+          mvn clean test \
+            -Dexecution.env=browserstack \
+            -DBROWSERSTACK_USERNAME=${{ secrets.BROWSERSTACK_USERNAME }} \
+            -DBROWSERSTACK_ACCESS_KEY=${{ secrets.BROWSERSTACK_ACCESS_KEY }} \
+            -DGITHUB_RUN_NUMBER=${{ github.run_number }}
 
-      - name: Run tests locally
+      # ── Local headless ────────────────────────────────────────────────────
+      - name: Run tests locally (headless)
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.execution_env == 'local'
         run: mvn clean test -Pheadless
 
+      # ── Artefactos siempre ────────────────────────────────────────────────
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,3 +75,4 @@ jobs:
             target/surefire-reports/
             test-output/
             screenshots/
+            reports/

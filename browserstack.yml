@@ -1,6 +1,6 @@
 # browserstack.yml
-userName: valentinemilioga_Uiz4Xv
-accessKey: YP2XjT5PE9t63fgyW8e8
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
 framework: testng
 
 platforms:
@@ -19,5 +19,5 @@ networkLogs: true
 consoleLogs: info
 
 # Timeouts
-browserstack.local: true
+browserstack.local: false
 browserstack.localIdentifier: ${BROWSERSTACK_LOCAL_IDENTIFIER}
