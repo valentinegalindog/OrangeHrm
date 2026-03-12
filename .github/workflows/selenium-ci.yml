@@ -13,7 +13,6 @@ on:
         default: local
         type: choice
         options:
-          - local
           - browserstack
 
 jobs:
@@ -40,8 +39,8 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Install Chrome (local tests)
-        if: github.event.inputs.execution_env != 'browserstack'
+      - name: Install Chrome (for local tests)
+        if: github.event.inputs.execution_env == 'local'
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
@@ -52,16 +51,16 @@ jobs:
           mvn clean test -Pbrowserstack
 
       - name: Run Selenium Tests (Local)
-        if: github.event.inputs.execution_env != 'browserstack'
+        if: github.event.inputs.execution_env == 'local'
         run: |
-          mvn clean test -Dheadless=true
+          mvn clean test -Pheadless 
 
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ github.event.inputs.execution_env }}-${{ github.run_number }}
           path: |
             target/surefire-reports/
-            screenshots/
+            target/screenshots/      
             test-output/

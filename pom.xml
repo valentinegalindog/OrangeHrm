@@ -132,6 +132,10 @@
             <properties>
                 <execution.env>browserstack</execution.env>
                 <headless>false</headless>
+                <!-- Las credenciales pueden venir de variables de entorno o de Maven
+                     properties, de forma que el agente las vea al arrancar. -->
+                <browserstack.userName>${env.BROWSERSTACK_USERNAME}</browserstack.userName>
+                <browserstack.accessKey>${env.BROWSERSTACK_ACCESS_KEY}</browserstack.accessKey>
             </properties>
 
             <build>
@@ -141,6 +145,11 @@
                         <artifactId>maven-surefire-plugin</artifactId>
 
                         <configuration>
+                            <systemPropertyVariables>
+                                <!-- pasar las props al JVM para que el javaagent las lea -->
+                                <browserstack.userName>${browserstack.userName}</browserstack.userName>
+                                <browserstack.accessKey>${browserstack.accessKey}</browserstack.accessKey>
+                            </systemPropertyVariables>
                             <argLine>
                                 -javaagent:${settings.localRepository}/com/browserstack/browserstack-java-sdk/${browserstack.sdk.version}/browserstack-java-sdk-${browserstack.sdk.version}.jar
                             </argLine>

@@ -129,8 +129,8 @@ public class BaseTest {
 
             // Cerrar driver
             if (driver != null) {
-                driver.quit();
                 driver.manage().deleteAllCookies();
+                driver.quit();
                 test.info("WebDriver cerrado correctamente");
             }
 

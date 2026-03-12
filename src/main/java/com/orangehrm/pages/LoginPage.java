@@ -23,7 +23,7 @@ public class LoginPage extends BasePage {
     }
 
     public void loginOrangeHrm(String user, String password) {
-        waitForElementVisible(txtPassword, 5000);
+        waitForElementVisible(txtPassword, 10000);
         sendKeys(txtUsername, user);
         sendKeys(txtPassword, password);
         takeScreenshot("Datos_Login");

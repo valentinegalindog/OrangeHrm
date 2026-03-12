@@ -23,23 +23,20 @@ public class DirectoryPage extends BasePage{
 
 
     public void searchEmployee(String nameEmployee) throws InterruptedException {
-        waitForElementVisible(txtEmployeeHints, 5000);
+        waitForElementVisible(txtEmployeeHints, 10000);
         sendKeys(txtEmployeeHints, nameEmployee);
         waitForElementClickable(firstAutocompleteOption, 10000);
-        Thread.sleep(2000);
+        Thread.sleep(4000);
         click(firstAutocompleteOption);
         takeScreenshot("Buscar_Empleado");
-        Thread.sleep(10000);
         waitForElementClickable(btnSearchEmployee, 5000);
         click(btnSearchEmployee);
-        Thread.sleep(10000);
     }
 
     public void validateSearchEmployee(String fullName) throws InterruptedException {
-        waitForElementVisible(lblCardName, 5000);
+        waitForElementVisible(lblCardName, 10000);
         assertEqualsText(lblCardName, fullName);
         takeScreenshot("Empleado_Buscado");
-        Thread.sleep(10000);
     }
 
 }

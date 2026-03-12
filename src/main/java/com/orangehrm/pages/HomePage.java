@@ -14,7 +14,7 @@ public class HomePage extends BasePage {
     private WebElement pim;
 
     public void homeClickPim() {
-        waitForElementVisible(pim, 5000);
+        waitForElementVisible(pim, 10000);
         takeScreenshot("Home_Page");
         click(pim);
     }

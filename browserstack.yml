@@ -1,6 +1,6 @@
 # browserstack.yml
-userName: ${BROWSERSTACK_USERNAME}
-accessKey: ${BROWSERSTACK_ACCESS_KEY}
+userName: valentinemilioga_Uiz4Xv
+accessKey: YP2XjT5PE9t63fgyW8e8
 framework: testng
 
 platforms:

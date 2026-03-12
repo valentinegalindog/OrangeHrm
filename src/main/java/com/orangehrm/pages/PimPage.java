@@ -32,40 +32,36 @@ public class PimPage extends BasePage{
     private WebElement directory;
 
     public void validateAddModulePim() throws InterruptedException {
-        waitForElementVisible(lblEmployeeInformation, 5000);
+        waitForElementVisible(lblEmployeeInformation, 10000);
         assertEqualsText(lblEmployeeInformation, "Employee Information");
         waitForElementClickable(btnAdd, 5000);
         takeScreenshot("Page_Pim");
         click(btnAdd);
-        Thread.sleep(10000);
     }
 
 
     public void addEmployee(String nameEmployee, String lastNameEmployee) throws InterruptedException {
-        waitForElementVisible(lblAddEmployeeTitle, 5000);
+        waitForElementVisible(lblAddEmployeeTitle, 10000);
         assertEqualsText(lblAddEmployeeTitle, "Add Employee");
-        waitForElementClickable(btnAddPhoto, 5000);
+        waitForElementClickable(btnAddPhoto, 10000);
         cargarFotoEmpleado("src/test/resources/images/empleado.png");
-        Thread.sleep(10000);
         sendKeys(txtFirstName, nameEmployee);
         sendKeys(txtLastName, lastNameEmployee);
-        Thread.sleep(10000);
         String numId = generarNumeroAleatorio4Cifras();
         sendKeys(txtEmployeeId, numId);
         takeScreenshot("Datos_Empleado");
         click(btnSave);
-        Thread.sleep(10000);
     }
 
     public void validateEmployeeCreation(String fullName) throws InterruptedException {
-        waitForElementVisible(lblEmployeeHeaderName, 5000);
+        waitForElementVisible(lblEmployeeHeaderName, 10000);
+        Thread.sleep(5000);
         assertEqualsText(lblEmployeeHeaderName, fullName);
         takeScreenshot("Empleado_Creado");
-        Thread.sleep(5000);
 
     }
     public  void clickDirectory() {
-        waitForElementClickable(directory, 5000);
+        waitForElementClickable(directory, 10000);
         click(directory);
         takeScreenshot("Page_Directory");
     }
