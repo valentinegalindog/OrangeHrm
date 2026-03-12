@@ -22,7 +22,7 @@
         <extentreports.version>5.1.1</extentreports.version>
         <commons-io.version>2.15.1</commons-io.version>
         <surefire.version>3.1.2</surefire.version>
-        <browserstack.sdk.version>1.11.0</browserstack.sdk.version>
+        <browserstack.sdk.version>1.13.0</browserstack.sdk.version>
 
         <!-- Variables de ejecución -->
         <execution.env>local</execution.env>
