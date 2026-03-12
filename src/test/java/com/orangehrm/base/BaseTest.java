@@ -31,8 +31,15 @@ public class BaseTest {
     protected static ExtentReports extent;
     protected ExtentTest test;
 
+    // Flag para detectar BrowserStack
+    private boolean isBrowserStack = false;
+
     @BeforeSuite
     public void setupSuite() {
+        // Detectar BrowserStack por la presencia del SDK o perfil
+        isBrowserStack = "browserstack".equals(System.getProperty("execution.env"))
+                || System.getProperty("browserstack.sdk") != null;
+
         String reportPath = ConfigReader.getProperty("report.path") + "TestReport.html";
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         sparkReporter.config().setDocumentTitle("Orange HRM Test Report");
@@ -42,31 +49,32 @@ public class BaseTest {
         extent.attachReporter(sparkReporter);
         extent.setSystemInfo("Environment", System.getProperty("env", "QA"));
         extent.setSystemInfo("Browser", ConfigReader.getProperty("browser"));
-
-        // Detectar si estamos en BrowserStack por la presencia del SDK
-        boolean isBrowserStack = System.getProperty("browserstack.sdk") != null;
         extent.setSystemInfo("Execution Env", isBrowserStack ? "BrowserStack" : "Local");
+        extent.setSystemInfo("OS", System.getProperty("os.name"));
     }
 
-    @BeforeMethod(alwaysRun = true)  // Importante: alwaysRun=true
+    @BeforeMethod(alwaysRun = true)
     public void setupTest(Method method) {
         test = extent.createTest(method.getName());
         test.info("Iniciando test: " + method.getName());
 
-        // Crear driver local (BrowserStack lo reemplazará automáticamente si es necesario)
-        createLocalDriver();
-
-        // Configurar timeouts
-        driver.manage().timeouts().implicitlyWait(
-                Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
-
-        // Maximizar solo si no estamos en BrowserStack (aunque BrowserStack lo maneja)
-        if (System.getProperty("browserstack.sdk") == null) {
-            driver.manage().window().maximize();
+        if (!isBrowserStack) {
+            createLocalDriver();
+            test.info("WebDriver local inicializado");
+        } else {
+            test.info("Ejecutando en BrowserStack - el SDK gestiona el driver");
         }
 
-        test.info("WebDriver inicializado");
+        // Configurar timeouts SOLO si tenemos driver
+        if (driver != null) {
+            driver.manage().timeouts().implicitlyWait(
+                    Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+
+            if (!isBrowserStack) {
+                driver.manage().window().maximize();
+            }
+        }
     }
 
     private void createLocalDriver() {
@@ -113,7 +121,7 @@ public class BaseTest {
         }
     }
 
-    @AfterMethod(alwaysRun = true)  // Importante: alwaysRun=true
+    @AfterMethod(alwaysRun = true)
     public void tearDownTest(ITestResult result) {
         String testName = result.getName();
 
@@ -127,15 +135,23 @@ public class BaseTest {
                 test.skip("Test saltado");
             }
 
-            // Cerrar driver
-            if (driver != null) {
-                driver.manage().deleteAllCookies();
-                driver.quit();
-                test.info("WebDriver cerrado correctamente");
+            if (driver != null && !isBrowserStack) {
+                test.info("Cerrando WebDriver local...");
+                try {
+                    driver.manage().deleteAllCookies();
+                    driver.quit();
+                    test.info("WebDriver local cerrado correctamente");
+                } catch (Exception e) {
+                    test.warning("Error al cerrar driver local: " + e.getMessage());
+                }
+            } else if (driver != null && isBrowserStack) {
+                test.info("Driver de BrowserStack será cerrado por el SDK");
             }
 
         } catch (Exception e) {
             test.warning("Error durante tearDown: " + e.getMessage());
+        } finally {
+            test = null;
         }
     }
 
@@ -145,12 +161,21 @@ public class BaseTest {
             extent.flush();
             String reportPath = ConfigReader.getProperty("report.path") + "TestReport.html";
             System.out.println("Reporte generado en: " + reportPath);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
     protected void takeScreenshot(String name) {
         try {
-            if (driver == null) return;
+            if (driver == null) {
+                test.warning("No se puede tomar screenshot: driver null");
+                return;
+            }
 
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             String screenshotDir = ConfigReader.getProperty("screenshot.path");
@@ -166,6 +191,13 @@ public class BaseTest {
 
         } catch (IOException e) {
             test.warning("No se pudo tomar screenshot: " + e.getMessage());
+        } catch (Exception e) {
+            test.warning("Error inesperado al tomar screenshot: " + e.getMessage());
         }
+    }
+
+    // Método helper para obtener el driver (útil para las pruebas)
+    public WebDriver getDriver() {
+        return driver;
     }
 }
