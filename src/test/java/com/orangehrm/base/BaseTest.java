@@ -31,14 +31,8 @@ public class BaseTest {
     protected static ExtentReports extent;
     protected ExtentTest test;
 
-    // Flag para detectar BrowserStack
-    private boolean isBrowserStack = false;
-
     @BeforeSuite
     public void setupSuite() {
-        // Detectar BrowserStack por la presencia del perfil
-        isBrowserStack = "browserstack".equals(System.getProperty("execution.env"));
-
         String reportPath = ConfigReader.getProperty("report.path") + "TestReport.html";
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         sparkReporter.config().setDocumentTitle("Orange HRM Test Report");
@@ -48,69 +42,31 @@ public class BaseTest {
         extent.attachReporter(sparkReporter);
         extent.setSystemInfo("Environment", System.getProperty("env", "QA"));
         extent.setSystemInfo("Browser", ConfigReader.getProperty("browser"));
+
+        // Detectar si estamos en BrowserStack por la presencia del SDK
+        boolean isBrowserStack = System.getProperty("browserstack.sdk") != null;
         extent.setSystemInfo("Execution Env", isBrowserStack ? "BrowserStack" : "Local");
-        extent.setSystemInfo("OS", System.getProperty("os.name"));
     }
 
-    @BeforeMethod(alwaysRun = true)
+    @BeforeMethod(alwaysRun = true)  // Importante: alwaysRun=true
     public void setupTest(Method method) {
         test = extent.createTest(method.getName());
         test.info("Iniciando test: " + method.getName());
 
-        try {
-            // Inicializar driver según el entorno
-            initializeDriver();
+        // Crear driver local (BrowserStack lo reemplazará automáticamente si es necesario)
+        createLocalDriver();
 
-            // Verificar que driver NO es null
-            if (driver == null) {
-                throw new RuntimeException("FATAL: driver es null después de initializeDriver()");
-            }
+        // Configurar timeouts
+        driver.manage().timeouts().implicitlyWait(
+                Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
 
-            test.info("Driver inicializado correctamente. Clase: " + driver.getClass().getSimpleName());
-
-            // Configurar timeouts
-            driver.manage().timeouts().implicitlyWait(
-                    Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
-            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
-
-            // Maximizar solo si es local
-            if (!isBrowserStack) {
-                driver.manage().window().maximize();
-            }
-
-        } catch (Exception e) {
-            test.fail("Error en setup: " + e.getMessage());
-            throw e;
+        // Maximizar solo si no estamos en BrowserStack (aunque BrowserStack lo maneja)
+        if (System.getProperty("browserstack.sdk") == null) {
+            driver.manage().window().maximize();
         }
-    }
 
-    private void initializeDriver() {
-        if (isBrowserStack) {
-            // ⚠️ IMPORTANTE: En BrowserStack NO creamos driver
-            // El SDK de BrowserStack ya creó el driver y lo inyecta
-            // Solo necesitamos obtener la referencia actual
-            test.info("Ejecutando en BrowserStack - el SDK gestiona el driver");
-
-            // Intentar obtener el driver actual de alguna manera
-            // El SDK de BrowserStack suele inyectarlo automáticamente
-            // Si no está disponible, esperamos un poco
-            int attempts = 0;
-            while (driver == null && attempts < 10) {
-                try {
-                    Thread.sleep(500);
-                    attempts++;
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            if (driver == null) {
-                throw new RuntimeException("No se pudo obtener el driver de BrowserStack después de 5 segundos");
-            }
-        } else {
-            // Crear driver local
-            createLocalDriver();
-        }
+        test.info("WebDriver inicializado");
     }
 
     private void createLocalDriver() {
@@ -157,7 +113,7 @@ public class BaseTest {
         }
     }
 
-    @AfterMethod(alwaysRun = true)
+    @AfterMethod(alwaysRun = true)  // Importante: alwaysRun=true
     public void tearDownTest(ITestResult result) {
         String testName = result.getName();
 
@@ -171,25 +127,15 @@ public class BaseTest {
                 test.skip("Test saltado");
             }
 
-            // Cerrar driver SOLO si es local
-            if (driver != null && !isBrowserStack) {
-                test.info("Cerrando WebDriver local...");
-                try {
-                    driver.manage().deleteAllCookies();
-                    driver.quit();
-                    test.info("WebDriver local cerrado correctamente");
-                } catch (Exception e) {
-                    test.warning("Error al cerrar driver local: " + e.getMessage());
-                }
-            } else if (driver != null && isBrowserStack) {
-                test.info("Driver de BrowserStack será cerrado por el SDK");
-                // NO llamamos a driver.quit() aquí
+            // Cerrar driver
+            if (driver != null) {
+                driver.manage().deleteAllCookies();
+                driver.quit();
+                test.info("WebDriver cerrado correctamente");
             }
 
         } catch (Exception e) {
             test.warning("Error durante tearDown: " + e.getMessage());
-        } finally {
-            test = null;
         }
     }
 
@@ -204,10 +150,7 @@ public class BaseTest {
 
     protected void takeScreenshot(String name) {
         try {
-            if (driver == null) {
-                test.warning("No se puede tomar screenshot: driver null");
-                return;
-            }
+            if (driver == null) return;
 
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             String screenshotDir = ConfigReader.getProperty("screenshot.path");
@@ -224,13 +167,5 @@ public class BaseTest {
         } catch (IOException e) {
             test.warning("No se pudo tomar screenshot: " + e.getMessage());
         }
-    }
-
-    // Método helper para obtener el driver (útil para las páginas)
-    public WebDriver getDriver() {
-        if (driver == null) {
-            throw new RuntimeException("Driver no inicializado. Llama a setupTest primero.");
-        }
-        return driver;
     }
 }
