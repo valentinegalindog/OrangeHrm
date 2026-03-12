@@ -3,6 +3,8 @@ package com.orangehrm.pages;
 import com.orangehrm.utils.ConfigReader;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.*;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -68,12 +70,19 @@ public class BasePage {
     }
 
     public void cargarFotoEmpleado(String rutaRelativa) {
-        // Esto convierte "src/test/resources/images/empleado.png"
-        // en algo como "C:/Usuarios/Proyecto/src/test/resources/images/empleado.png"
         File archivo = new File(rutaRelativa);
-        String rutaAbsoluta = archivo.getAbsolutePath();
+
+        if (!archivo.exists()) {
+            throw new RuntimeException("Archivo no encontrado en: " + archivo.getAbsolutePath());
+        }
+
+        // IMPORTANTE: setear ANTES de buscar el elemento
+        if (driver instanceof RemoteWebDriver) {
+            ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
+        }
+
         WebElement fileInput = driver.findElement(By.cssSelector("input[type='file'].oxd-file-input"));
-        fileInput.sendKeys(rutaAbsoluta);
+        fileInput.sendKeys(archivo.getAbsolutePath());
     }
 
 
