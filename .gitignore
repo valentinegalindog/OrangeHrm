@@ -9,10 +9,14 @@ release.properties
 # Screenshots y reportes
 screenshots/
 test-output/
-*.png
-*.jpg
 *.html
 *.log
+
+# Ignorar imágenes EXCEPTO las de recursos de test
+*.png
+*.jpg
+!src/test/resources/images/*.png
+!src/test/resources/images/*.jpg
 
 # IDE
 .idea/
