@@ -18,10 +18,11 @@ public class BasePage {
     protected WebDriverWait wait;
 
     public BasePage(WebDriver driver) {
+        if (driver == null) {
+            throw new RuntimeException("ERROR: Driver null en BasePage constructor");
+        }
         this.driver = driver;
-        this.wait = new WebDriverWait(driver,
-                Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
-        PageFactory.initElements(driver, this);
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public void click(WebElement element) {
