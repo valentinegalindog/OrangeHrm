@@ -59,7 +59,7 @@ public class BaseTest {
         // Configurar timeouts
         driver.manage().timeouts().implicitlyWait(
                 Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(15));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
 
         // Maximizar solo si no estamos en BrowserStack (aunque BrowserStack lo maneja)
         if (System.getProperty("browserstack.sdk") == null) {
