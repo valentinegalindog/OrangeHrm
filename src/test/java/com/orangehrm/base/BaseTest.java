@@ -71,9 +71,9 @@ public class BaseTest {
             createBrowserStackDriver(method.getName());
         } else {
             createLocalDriver();
-            driver.manage().window().maximize();
-        }
 
+        }
+        driver.manage().window().maximize();
         driver.manage().timeouts().implicitlyWait(
                 Duration.ofSeconds(ConfigReader.getIntProperty("app.timeout")));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
