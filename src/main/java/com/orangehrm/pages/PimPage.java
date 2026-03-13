@@ -38,8 +38,6 @@ public class PimPage extends BasePage{
         takeScreenshot("Page_Pim");
         click(btnAdd);
     }
-
-
     public void addEmployee(String nameEmployee, String lastNameEmployee) throws InterruptedException {
         waitForElementVisible(lblAddEmployeeTitle, 10000);
         assertEqualsText(lblAddEmployeeTitle, "Add Employee");
@@ -52,13 +50,11 @@ public class PimPage extends BasePage{
         takeScreenshot("Datos_Empleado");
         click(btnSave);
     }
-
     public void validateEmployeeCreation(String fullName) throws InterruptedException {
         waitForElementVisible(lblEmployeeHeaderName, 10000);
         Thread.sleep(5000);
         assertEqualsText(lblEmployeeHeaderName, fullName);
         takeScreenshot("Empleado_Creado");
-
     }
     public  void clickDirectory() {
         waitForElementClickable(directory, 10000);

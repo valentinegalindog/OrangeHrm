@@ -35,9 +35,6 @@ public class BaseTest {
     protected static ExtentReports extent;
     protected ExtentTest test;
 
-    // ─── Detección de BrowserStack ────────────────────────────────────────────
-    // El SDK setea "browserstack.sdk" cuando carga como javaagent.
-    // Además comprobamos las variables de entorno para el caso de RemoteWebDriver directo.
     private static final boolean IS_BROWSERSTACK =
             System.getProperty("browserstack.sdk") != null
                     || (System.getenv("BROWSERSTACK_USERNAME") != null
@@ -109,8 +106,6 @@ public class BaseTest {
             bsOptions.put("debug", true);
             bsOptions.put("networkLogs", true);
             bsOptions.put("consoleLogs", "info");
-            // Sin local tunnel (browserstackLocal: false) porque GitHub Actions
-            // puede llegar a orangehrm.com directamente
             bsOptions.put("local", false);
 
             capabilities.setCapability("bstack:options", bsOptions);

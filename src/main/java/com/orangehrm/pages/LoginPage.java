@@ -29,5 +29,4 @@ public class LoginPage extends BasePage {
         takeScreenshot("Datos_Login");
         click(btnLogin);
     }
-
 }

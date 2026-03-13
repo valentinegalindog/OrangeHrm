@@ -71,25 +71,19 @@ public class BasePage {
 
     public void cargarFotoEmpleado(String rutaRelativa) {
         File archivo = new File(rutaRelativa);
-
         if (!archivo.exists()) {
             throw new RuntimeException("Archivo no encontrado en: " + archivo.getAbsolutePath());
         }
-
-        // IMPORTANTE: setear ANTES de buscar el elemento
         if (driver instanceof RemoteWebDriver) {
             ((RemoteWebDriver) driver).setFileDetector(new LocalFileDetector());
         }
-
         WebElement fileInput = driver.findElement(By.cssSelector("input[type='file'].oxd-file-input"));
         fileInput.sendKeys(archivo.getAbsolutePath());
     }
-
 
     public String generarNumeroAleatorio4Cifras() {
         Random random = new Random();
         int numero = 1000 + random.nextInt(9000);
         return String.valueOf(numero);
     }
-
 }

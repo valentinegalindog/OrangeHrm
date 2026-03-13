@@ -38,5 +38,4 @@ public class DirectoryPage extends BasePage{
         assertEqualsText(lblCardName, fullName);
         takeScreenshot("Empleado_Buscado");
     }
-
 }
